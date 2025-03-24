@@ -345,6 +345,11 @@ public class FijiSubprocessEngineWindow extends SubprocessEngineWindow {
             });
     }
 
+    private void updateUIPreferences() {
+        preferences.put(FONT_SIZE_PREF, preferredFontSize + "");
+        preferences.put(INPUT_BACKGROUND_PREF, String.valueOf(inputBackground.getRGB()));
+    }
+
     public FijiSubprocessEngineWindow(SubprocessEngine e,FijiPreferences preferences){
         this(e,true,true,preferences);
     }
@@ -608,11 +613,12 @@ public class FijiSubprocessEngineWindow extends SubprocessEngineWindow {
         String PFS = getPreference(FONT_SIZE_PREF);
         if (PFS!=null) preferredFontSize = Integer.parseInt(PFS);
         else {
-            preferredFontSize = 13;
+            preferredFontSize = 18;
             preferences.put(FONT_SIZE_PREF, preferredFontSize+"");
         }
                 
         setPreferredFontSize();
+        
         engine.waitUntilAvailable();
 
         if (!e.deterministicGoal("retractall(ipFontSize(_)), asserta(ipFontSize("+preferredFontSize+"))"))
@@ -740,10 +746,23 @@ public class FijiSubprocessEngineWindow extends SubprocessEngineWindow {
         }
         return null;
     }
+    private void improveTextAreaReadability() {
+        // Apply to prologOutput
+        prologOutput.setLineWrap(true);
+        prologOutput.setWrapStyleWord(true);
         
+        // Apply to prologInput
+        prologInput.setLineWrap(true);
+        prologInput.setWrapStyleWord(true);
+        
+        // Increase padding/margins for better readability
+        prologOutput.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        prologInput.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+    }
     void setPreferredFontSize(){
         prologInput.setFont(prologInput.getFont().deriveFont((float)preferredFontSize));
         prologOutput.setFont(prologOutput.getFont().deriveFont((float)preferredFontSize));
+        improveTextAreaReadability();
     }
         
     void showTablesPanel(){
@@ -926,7 +945,7 @@ public class FijiSubprocessEngineWindow extends SubprocessEngineWindow {
             controller.setHintsForFields("Running...", language.toLowerCase()+">", "Waiting for more input...");
             controller.setLabelsForState("Running...", "Idle", "Waiting...");
             busyColor = new Color(249,249,202);
-            needsMoreInputColor = new Color(232,197,116);
+            needsMoreInputColor = new Color(252, 252, 245);
             idleOrPausedColor = prologInput.getBackground();
             controller.setColorsForFields(busyColor, idleOrPausedColor, needsMoreInputColor);
         } else {
