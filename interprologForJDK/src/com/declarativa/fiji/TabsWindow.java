@@ -7,10 +7,12 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -83,8 +85,20 @@ public class TabsWindow extends JFrame {
 		finders = new TabsWindow("Term Search",FINDERS_TABWINDOW_PREF,listener);
 		finders.setDefaultCloseOperation(HIDE_ON_CLOSE); // nothing to lose, no persistence
 	}
+	
 	public static boolean inSomeTab(Component w){
 		return (editors!=null && editors.inTab(w) || justifiers!=null && justifiers.inTab(w));
+	}
+
+	private void applyModernTabbedPaneStyling() {
+		// Increase font size
+		tabsPane.setFont(tabsPane.getFont().deriveFont(13f));
+		
+		// Add some padding around the tabs content area
+		tabsPane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+		
+		// Set tab layout policy to ensure tabs are visible
+		tabsPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 	}
 
 	private TabsWindow(String title, String prefName, FijiSubprocessEngineWindow listener){
@@ -93,6 +107,8 @@ public class TabsWindow extends JFrame {
 		originalMenuBars = new ArrayList<JMenuBar>();
 		detabActions = new ArrayList<Action>();
 		tabsPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+		applyModernTabbedPaneStyling();
+		
 		getContentPane().add(tabsPane, BorderLayout.CENTER);
 		tabsPane.addChangeListener(new ChangeListener(){
 			@Override
@@ -312,7 +328,22 @@ public class TabsWindow extends JFrame {
 	 */
 	class ButtonTabComponent extends JPanel {	
 		JLabel label;
-	    public ButtonTabComponent(Runnable closer,ImageIcon statusIcon) {
+		
+		private void applyModernTabStyling() {
+			// Add more padding around tab content
+			setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+			
+			// Improve tab label appearance
+			label.setFont(label.getFont().deriveFont(Font.PLAIN, 13f));
+			
+			// Use a more subtle border
+			setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createMatteBorder(0, 0, 0, 0, new Color(230, 230, 230)),
+				BorderFactory.createEmptyBorder(6, 8, 6, 8)
+			));
+		}
+		
+	    public ButtonTabComponent(Runnable closer, ImageIcon statusIcon) {
 	        //unset default FlowLayout' gaps
 	        super(new FlowLayout(FlowLayout.LEFT, 0, 0));
 	        if (tabsPane == null) {
@@ -321,7 +352,7 @@ public class TabsWindow extends JFrame {
 	        setOpaque(false);
 	         
 	        //make JLabel read titles from JTabbedPane
-	        label = new JLabel(statusIcon,SwingConstants.TRAILING) {
+	        label = new JLabel(statusIcon, SwingConstants.TRAILING) {
 	            public String getText() {
 	                int i = tabsPane.indexOfTabComponent(ButtonTabComponent.this);
 	                if (i != -1) {
@@ -369,6 +400,9 @@ public class TabsWindow extends JFrame {
 	        add(button);
 	        //add more space to the top of the component
 	        setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
+	        
+	        // Apply modern styling
+	        applyModernTabStyling();
 	    }
 	 
 	    void setStatusIcon(Icon icon){
@@ -379,23 +413,24 @@ public class TabsWindow extends JFrame {
 	    	Runnable closer;
 	        public TabButton(Runnable closer) {
 	        	this.closer = closer;
-	            int size = 17;
+	            int size = 20; // Increased from 17 for easier touch targets
 	            setPreferredSize(new Dimension(size, size));
 	            if (closer==null)
 	            	setToolTipText("close this tab");
-	            //Make the button looks the same for all Laf's
+	            
+	            // Make the button looks the same for all Laf's
 	            setUI(new BasicButtonUI());
-	            //Make it transparent
+	            // Make it transparent
 	            setContentAreaFilled(false);
-	            //No need to be focusable
+	            // No need to be focusable
 	            setFocusable(false);
-	            setBorder(BorderFactory.createEtchedBorder());
+	            setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 	            setBorderPainted(false);
-	            //Making nice rollover effect
-	            //we use the same listener for all buttons
+	            // Making nice rollover effect
+	            // we use the same listener for all buttons
 	            addMouseListener(buttonMouseListener);
 	            setRolloverEnabled(true);
-	            //Close the proper tab by clicking the button
+	            // Close the proper tab by clicking the button
 	            addActionListener(this);
 	        }
 	 
@@ -418,15 +453,22 @@ public class TabsWindow extends JFrame {
 	        protected void paintComponent(Graphics g) {
 	            super.paintComponent(g);
 	            Graphics2D g2 = (Graphics2D) g.create();
-	            //shift the image for pressed buttons
+	            
+	            // Enable antialiasing for smoother lines
+	            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	            
+	            // shift the image for pressed buttons
 	            if (getModel().isPressed()) {
 	                g2.translate(1, 1);
 	            }
+	            
 	            g2.setStroke(new BasicStroke(2));
-	            g2.setColor(Color.BLACK);
+	            g2.setColor(new Color(120, 120, 120)); // More subtle gray instead of black
+	            
 	            if (getModel().isRollover()) {
-	                g2.setColor(Color.MAGENTA);
+	                g2.setColor(new Color(231, 76, 60)); // Modern red color on hover
 	            }
+	            
 	            int delta = 6;
 	            g2.drawLine(delta, delta, getWidth() - delta - 1, getHeight() - delta - 1);
 	            g2.drawLine(getWidth() - delta - 1, delta, delta, getHeight() - delta - 1);
@@ -452,5 +494,4 @@ public class TabsWindow extends JFrame {
 	        }
 	    };
 	}
-
 }
